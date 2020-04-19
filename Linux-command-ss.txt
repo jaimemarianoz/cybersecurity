@@ -1,0 +1,294 @@
+SS - Socket Statistics Commands Cheatsheet
+##########################################
+
+El comando ss nos provee de mucha mas informacion que el comando tradicional netstat, este documento tiene como intension mostrar las diferentes alternativas para poder utilizar este comando en nuestras actividades rutinarias, asi como recavar informacion importante para el analisis en la resolucion de problemas.
+
+Siempre recordar que cuando trabajamos en Linux podemos consultar al comand man ss, para poder investigar las diferentes opciones que tenemos para ajustar la salida del comando en interes.
+
+Opciones basicas
+----------------
+El comando ss tiene estas opciones basicas para poder consultar lo siguiente:
+
+t - conecciones tcp
+u - conneciones udp
+x - conecciones unix
+a - mostrar listening y non-listening sockets
+l - mostrar solo listening sockets
+n - previene resolver ip address to hostname
+p - mostrar los procesos que usan los sockets
+s - resumen de estadisticas de conecciones
+4 - IP version 4 | equivalente -f inet
+6 - IP version 6 | equivalente -f inet6
+o - Muestro informacion de tiempo ejecutado
+
+Listar todas las conecciones
+
+Listar conneciones de sockets TCP
+---------------------------------
+[jaime@nova ~]$ ss -lt
+State                Recv-Q                 Send-Q                                  Local Address:Port                                   Peer Address:Port                
+LISTEN               0                      128                                           0.0.0.0:sunrpc                                      0.0.0.0:*                
+LISTEN               0                      128                                           0.0.0.0:http                                        0.0.0.0:*                   
+LISTEN               0                      32                                      192.168.122.1:domain                                      0.0.0.0:*                   
+LISTEN               0                      128                                           0.0.0.0:ssh                                         0.0.0.0:*                   
+LISTEN               0                      5                                           127.0.0.1:ipp                                         0.0.0.0:*                   
+LISTEN               0                      128                                           0.0.0.0:https                                       0.0.0.0:*                   
+LISTEN               0                      128                                              [::]:sunrpc                                         [::]:*                   
+LISTEN               0                      128                                              [::]:ssh                                            [::]:*                   
+LISTEN               0                      5                                               [::1]:ipp                                            [::]:*                   
+
+Listar conneciones de sockets UDP
+---------------------------------
+[jaime@nova ~]$ ss -lu
+State                Recv-Q                Send-Q                                   Local Address:Port                                   Peer Address:Port                
+UNCONN               0                     0                                              0.0.0.0:38058                                       0.0.0.0:*                   
+UNCONN               0                     0                                              0.0.0.0:mdns                                        0.0.0.0:*                   
+UNCONN               0                     0                                        192.168.122.1:domain                                      0.0.0.0:*                   
+UNCONN               0                     0                                       0.0.0.0%virbr0:bootps                                      0.0.0.0:*                   
+UNCONN               0                     0                                              0.0.0.0:sunrpc                                      0.0.0.0:*                   
+UNCONN               0                     0                                            127.0.0.1:323                                         0.0.0.0:*                   
+UNCONN               0                     0                                                 [::]:mdns                                           [::]:*                   
+UNCONN               0                     0                                                 [::]:sunrpc                                         [::]:*                   
+UNCONN               0                     0                                                [::1]:323                                            [::]:*                   
+UNCONN               0                     0                                                 [::]:35177                                          [::]:*    
+
+Listar conecciones de sockets UNIX
+----------------------------------
+[jaime@nova ~]$ ss -lx
+Netid        State          Recv-Q         Send-Q                                                           Local Address:Port                  Peer Address:Port         
+u_str        LISTEN         0              128                                                      @/tmp/dbus-x1zrkiPdzk 57785                            * 0            
+u_str        LISTEN         0              128                                                       @/tmp/.ICE-unix/6816 57285                            * 0            
+u_str        LISTEN         0              10                                                      /var/lib/sss/pipes/nss 30466                            * 0            
+u_str        LISTEN         0              10                                                         @/tmp/dbus-d1P5VMdu 56340                            * 0            
+u_str        LISTEN         0              128                                                       @/tmp/.ICE-unix/7079 61505                            * 0            
+u_str        LISTEN         0              128                                                       /run/systemd/private 22794                            * 0            
+u_str        LISTEN         0              10                                              /var/lib/gssproxy/default.sock 36478                            * 0   
+
+Listar listening and non-listening sockets (Para TCP significa conecciones establecidas ""ESTABLISHED)
+----------------------------------------------------------------------------------------
+[jaime@nova ~]$ ss -la | head -n 5
+
+Netid             State               Recv-Q               Send-Q                                                           Local Address:Port                                                 Peer Address:Port                                
+nl                UNCONN              0                    0                                                                         rtnl:geoclue/7240                                                     *                                    
+nl                UNCONN              0                    0                                                                         rtnl:evolution-calen/7365                                             *                                    
+nl                UNCONN              0                    0                                                                         rtnl:kernel                                                           *                                    
+nl                UNCONN              0                    0                                                                         rtnl:NetworkManager/1255                                              *                                    
+
+Ahora podemos utilizar estas opciones en un comando que nos permita consultar sobre las conneciones de tipo TCP y UDP filtando el tipo de estado como: LISTEN
+
+Listar conneciones tipo TCP, UDP sockets con estado LISTEN
+---------------------------------------------------------
+[jaime@nova ~]$ ss -ltu
+Netid             State               Recv-Q              Send-Q                             Local Address:Port                             Peer Address:Port             
+udp               UNCONN              0                   0                                        0.0.0.0:38058                                 0.0.0.0:*                
+udp               UNCONN              0                   0                                        0.0.0.0:mdns                                  0.0.0.0:*                
+udp               UNCONN              0                   0                                  192.168.122.1:domain                                0.0.0.0:*                
+udp               UNCONN              0                   0                                 0.0.0.0%virbr0:bootps                                0.0.0.0:*                
+udp               UNCONN              0                   0                                        0.0.0.0:sunrpc                                0.0.0.0:*                
+udp               UNCONN              0                   0                                      127.0.0.1:323                                   0.0.0.0:*                
+udp               UNCONN              0                   0                                           [::]:mdns                                     [::]:*                
+udp               UNCONN              0                   0                                           [::]:sunrpc                                   [::]:*                
+udp               UNCONN              0                   0                                          [::1]:323                                      [::]:*                
+udp               UNCONN              0                   0                                           [::]:35177                                    [::]:*                
+tcp               LISTEN              0                   128                                      0.0.0.0:sunrpc                                0.0.0.0:*                
+tcp               LISTEN              0                   128                                      0.0.0.0:http                                  0.0.0.0:*                
+tcp               LISTEN              0                   32                                 192.168.122.1:domain                                0.0.0.0:*                
+tcp               LISTEN              0                   128                                      0.0.0.0:ssh                                   0.0.0.0:*                
+tcp               LISTEN              0                   5                                      127.0.0.1:ipp                                   0.0.0.0:*                
+tcp               LISTEN              0                   128                                      0.0.0.0:https                                 0.0.0.0:*                
+tcp               LISTEN              0                   128                                         [::]:sunrpc                                   [::]:*                
+tcp               LISTEN              0                   128                                         [::]:ssh                                      [::]:*                
+tcp               LISTEN              0                   5                                          [::1]:ipp                                      [::]:*           
+
+Listar connectiones de tipo TCP, UDP sockets con estado LISTEN, previniendo la resolucion de nombres
+----------------------------------------------------------------------------------------------------
+Esto quiere decir que tanto las ips que se resuelvan por dns naturalmente como nombres y los nombres de puertos se mostraran en formato numerico.
+
+[jaime@nova ~]$ ss -ltun
+Netid             State               Recv-Q              Send-Q                             Local Address:Port                            Peer Address:Port              
+udp               UNCONN              0                   0                                        0.0.0.0:38058                                0.0.0.0:*                 
+udp               UNCONN              0                   0                                        0.0.0.0:5353                                 0.0.0.0:*                 
+udp               UNCONN              0                   0                                  192.168.122.1:53                                   0.0.0.0:*                 
+udp               UNCONN              0                   0                                 0.0.0.0%virbr0:67                                   0.0.0.0:*                 
+udp               UNCONN              0                   0                                        0.0.0.0:111                                  0.0.0.0:*                 
+udp               UNCONN              0                   0                                      127.0.0.1:323                                  0.0.0.0:*                 
+udp               UNCONN              0                   0                                           [::]:5353                                    [::]:*                 
+udp               UNCONN              0                   0                                           [::]:111                                     [::]:*                 
+udp               UNCONN              0                   0                                          [::1]:323                                     [::]:*                 
+udp               UNCONN              0                   0                                           [::]:35177                                   [::]:*                 
+tcp               LISTEN              0                   128                                      0.0.0.0:111                                  0.0.0.0:*                 
+tcp               LISTEN              0                   128                                      0.0.0.0:80                                   0.0.0.0:*                 
+tcp               LISTEN              0                   32                                 192.168.122.1:53                                   0.0.0.0:*                 
+tcp               LISTEN              0                   128                                      0.0.0.0:22                                   0.0.0.0:*                 
+tcp               LISTEN              0                   5                                      127.0.0.1:631                                  0.0.0.0:*                 
+tcp               LISTEN              0                   128                                      0.0.0.0:443                                  0.0.0.0:*                 
+tcp               LISTEN              0                   128                                         [::]:111                                     [::]:*                 
+tcp               LISTEN              0                   128                                         [::]:22                                      [::]:*                 
+tcp               LISTEN              0                   5                                          [::1]:631                                     [::]:*    
+
+Listar connectiones de tipo TCP, UDP sockets con estado LISTEN, previniendo la resolucion de nombres con estadisticas
+---------------------------------------------------------------------------------------------------------------------
+[jaime@nova ~]$ ss -ltnps
+Total: 1167
+TCP:   13 (estab 0, closed 4, orphaned 0, timewait 0)
+
+Transport Total     IP        IPv6
+RAW	  	  0         0         0        
+UDP	     10         6         4        
+TCP	      9         6         3        
+INET	 19        12         7        
+FRAG	  0         0         0        
+
+State                 Recv-Q                 Send-Q                                  Local Address:Port                                 Peer Address:Port                 
+LISTEN                0                      128                                           0.0.0.0:111                                       0.0.0.0:*                    
+LISTEN                0                      128                                           0.0.0.0:80                                        0.0.0.0:*                    
+LISTEN                0                      32                                      192.168.122.1:53                                        0.0.0.0:*                    
+LISTEN                0                      128                                           0.0.0.0:22                                        0.0.0.0:*                    
+LISTEN                0                      5                                           127.0.0.1:631                                       0.0.0.0:*                    
+LISTEN                0                      128                                           0.0.0.0:443                                       0.0.0.0:*                    
+LISTEN                0                      128                                              [::]:111                                          [::]:*                    
+LISTEN                0                      128                                              [::]:22                                           [::]:*                    
+LISTEN                0                      5                                               [::1]:631                                          [::]:*                    
+
+Listar procesos de conecciones 
+------------------------------
+jaime@nova ~]$ ss -lp | grep users
+u_str             LISTEN              0                    128                                                       @/tmp/.ICE-unix/7079 61505                                                           * 0                                    users:(("gnome-session-b",pid=7079,fd=11))                                     
+u_str             LISTEN              0                    128                                                   /run/user/1000/wayland-0 62224                                                           * 0                                    users:(("gnome-shell",pid=7164,fd=27),("gnome-shell",pid=7164,fd=25))          
+u_str             LISTEN              0                    128                                                        /tmp/.ICE-unix/7079 61506                                                           * 0                                    users:(("gnome-session-b",pid=7079,fd=12))                                     
+u_str             LISTEN              0                    5                                                        /tmp/.esd-1000/socket 56182                                                           * 0                                    users:(("pulseaudio",pid=6747,fd=16))                                          
+u_str             LISTEN              0                    1                                                           @/tmp/.X11-unix/X0 62108                                                           * 0                                    users:(("Xwayland",pid=7187,fd=4))                                             
+u_str             LISTEN              0                    10                                                         @/tmp/dbus-w8G3wbKO 62417                                                           * 0                                    users:(("ibus-daemon",pid=7206,fd=9))                                          
+u_str             LISTEN              0                    1                                                            /tmp/.X11-unix/X0 62109                                                           * 0                                    users:(("Xwayland",pid=7187,fd=5))                                             
+u_str             LISTEN              0                    128                                                      @/tmp/dbus-pTE7H3bDnC 62311        
+
+Listar conecciones de tipo TCP, UDP, PROCESOS, NO_RESOLV, IPV4
+--------------------------------------------------------------
+[jaime@nova ~]$ ss -taunlp4
+Netid             State               Recv-Q              Send-Q                             Local Address:Port                            Peer Address:Port              
+udp               UNCONN              0                   0                                        0.0.0.0:38058                                0.0.0.0:*                 
+udp               UNCONN              0                   0                                        0.0.0.0:5353                                 0.0.0.0:*                 
+udp               UNCONN              0                   0                                  192.168.122.1:53                                   0.0.0.0:*                 
+udp               UNCONN              0                   0                                 0.0.0.0%virbr0:67                                   0.0.0.0:*                 
+udp               UNCONN              0                   0                                        0.0.0.0:111                                  0.0.0.0:*                 
+udp               UNCONN              0                   0                                      127.0.0.1:323                                  0.0.0.0:*                 
+tcp               LISTEN              0                   128                                      0.0.0.0:111                                  0.0.0.0:*                 
+tcp               LISTEN              0                   128                                      0.0.0.0:80                                   0.0.0.0:*                 
+tcp               LISTEN              0                   32                                 192.168.122.1:53                                   0.0.0.0:*                 
+tcp               LISTEN              0                   128                                      0.0.0.0:22                                   0.0.0.0:*                 
+tcp               LISTEN              0                   5                                      127.0.0.1:631                                  0.0.0.0:*                 
+tcp               LISTEN              0                   128                                      0.0.0.0:443                                  0.0.0.0:*   
+
+Listar conecciones de tipo TCP, UDP, PROCESOS, NO_RESOLV, IPV6
+--------------------------------------------------------------              
+[jaime@nova ~]$ ss -taunlp6
+Netid             State               Recv-Q              Send-Q                            Local Address:Port                             Peer Address:Port              
+udp               UNCONN              0                   0                                          [::]:5353                                     [::]:*                 
+udp               UNCONN              0                   0                                          [::]:111                                      [::]:*                 
+udp               UNCONN              0                   0                                         [::1]:323                                      [::]:*                 
+udp               UNCONN              0                   0                                          [::]:35177                                    [::]:*                 
+tcp               LISTEN              0                   128                                        [::]:111                                      [::]:*                 
+tcp               LISTEN              0                   128                                        [::]:22                                       [::]:*                 
+tcp               LISTEN              0                   5                                         [::1]:631                                      [::]:*             
+
+Filtrar conecciones por estado TCP
+##################################
+
+Es importante entender los tipos de estados de una coneccion TCP/IP en este caso la herramienta ss nos provee las siguientes opciones:
+
+ss <options> <state-filter> <address-filter> 
+
+Todos los estados estandard TCP: 
+established, syn-sent, syn-recv, fin-wait-1, fin-wait-2, time-wait, closed, close-wait, last-ack, listening and closing
+
+all - para todos los estados
+
+connected - todos los estados ecepto para listening y closed
+
+synchronized - todos los estados ecepto para syn-sent
+
+bucket - estados, los cuales son mantenidos como minisocjets, i.e.  time-wait and syn-recv
+
+big - lo contrario de bucket
+
+Sintaxis:
+
+FILTER := [ state STATE-FILTER ] [ EXPRESSION ]
+       STATE-FILTER := {all|connected|synchronized|bucket|big|TCP-STATES}
+         TCP-STATES := {established|syn-sent|syn-recv|fin-wait-{1,2}|time-wait|closed|close-wait|last-ack|listening|closing}
+          connected := {established|syn-sent|syn-recv|fin-wait-{1,2}|time-wait|close-wait|last-ack|closing}
+       synchronized := {established|syn-recv|fin-wait-{1,2}|time-wait|close-wait|last-ack|closing}
+             bucket := {syn-recv|time-wait}
+                big := {established|syn-sent|fin-wait-{1,2}|closed|close-wait|last-ack|listening|closing}
+
+Listar conecciones de tipo TCP, UDP, PROCESOS, NO_RESOLV, IPV4, FILTRAR por el estado listening
+-----------------------------------------------------------------------------------------------
+[jaime@nova ~]$ ss -taunlp state listening
+Netid                Recv-Q                 Send-Q                                  Local Address:Port                                  Peer Address:Port                 
+tcp                  0                      128                                           0.0.0.0:111                                        0.0.0.0:*                    
+tcp                  0                      128                                           0.0.0.0:80                                         0.0.0.0:*                    
+tcp                  0                      32                                      192.168.122.1:53                                         0.0.0.0:*                    
+tcp                  0                      128                                           0.0.0.0:22                                         0.0.0.0:*                    
+tcp                  0                      5                                           127.0.0.1:631                                        0.0.0.0:*                    
+tcp                  0                      128                                           0.0.0.0:443                                        0.0.0.0:*                    
+tcp                  0                      128                                              [::]:111                                           [::]:*                    
+tcp                  0                      128                                              [::]:22                                            [::]:*                    
+tcp                  0                      5                                               [::1]:631                                           [::]:*                    
+
+Listar connecciones con estado "connected" para el servicio ssh
+---------------------------------------------------------------
+[root@nova ~]# ss -latn state connected
+State                Recv-Q                 Send-Q                                  Local Address:Port                                  Peer Address:Port                 
+ESTAB                0                      0                                        192.168.1.12:22                                   192.168.1.239:64842       
+
+
+Filter connections by address and port number
+#############################################
+Esta opcion permite hacer filtros basados en:
+sport = Source Port (Local Address:Port)
+dport = Destination Port (Peer Addres:Port)
+
+Operadores que se pueden utilizar:
+
+<= or le : Less than or equal to port
+>= or ge : Greater than or equal to port
+== or eq : Equal to port
+!= or ne : Not equal to port
+< or gt : Less than to port
+> or lt : Greater than to port
+
+Listar connectionces TCP filtrando el servicio SSH para sport y dport
+---------------------------------------------------------------------
+[jaime@nova ~]$ ss -lat '( dport = :ssh or sport = :ssh )'
+State    Recv-Q    Send-Q        Local Address:Port        Peer Address:Port
+LISTEN   0         128                 0.0.0.0:ssh              0.0.0.0:*
+ESTAB    0         64             192.168.1.12:ssh        192.168.1.239:64842
+LISTEN   0         128                    [::]:ssh                 [::]:*
+
+Listar connectionces TCP filtrando el servicio SSH para sport 
+-------------------------------------------------------------
+[jaime@nova ~]$ ss -lat '( sport = :ssh )'
+State    Recv-Q    Send-Q        Local Address:Port        Peer Address:Port
+LISTEN   0         128                 0.0.0.0:ssh              0.0.0.0:*
+ESTAB    0         64             192.168.1.12:ssh        192.168.1.239:64842
+LISTEN   0         128                    [::]:ssh                 [::]:*
+
+Listar connectionces TCP filtrando el servicio SSH para dport 
+-------------------------------------------------------------
+[jaime@nova ~]$ ss -lat '( dport = :64842 )'
+State   Recv-Q    Send-Q        Local Address:Port        Peer Address:Port
+ESTAB   0         64             192.168.1.12:ssh        192.168.1.239:64842
+
+Listar conneciones TCP IPV4 filtrando los servicios SSH y HTTP para sport
+--------------------------------------------------------------------
+[jaime@nova ~]$ ss -lat -f inet '( sport = :ssh or sport = :http )'
+State     Recv-Q  Send-Q      Local Address:Port      Peer Address:Port
+LISTEN    0       128               0.0.0.0:http           0.0.0.0:*
+LISTEN    0       128               0.0.0.0:ssh            0.0.0.0:*
+ESTAB     0       64           192.168.1.12:ssh      192.168.1.239:64842
+TIME-WAIT 0       0            192.168.1.12:http     192.168.1.239:fjicl-tep-c
+
+
+
+ 
+
